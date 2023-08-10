@@ -93,6 +93,7 @@ $image.Dispose()
 $bitmap.Dispose()
 $font.Dispose()
 $brush.Dispose()
-apps-fileview.texmex_20230712.10_p0
+
+#apps-fileview.texmex_20230712.10_p0
 #SysInfoWallpaper_jaroga.txt
-Displaying #SysInfoWallpaper_jaroga.txt.
+#Displaying #SysInfoWallpaper_jaroga.txt.
