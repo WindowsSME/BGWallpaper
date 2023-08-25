@@ -1,7 +1,9 @@
-
-#SysInfoWallpaper.ps1
-#Author: James Romeo Gaspar
-#Version 1.0 : 22 March 2023
+<#
+Set BG Wallpaper with System Information
+Author: James Romeo Gaspar
+Version: 1.0 : Original code : | 22 March 2023
+Revision: 2.0 : Added DNS and Current User, enhanced display | 10 August 2023
+#>
 
 $currentWallpaperPath = (Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name 'Wallpaper').Wallpaper
 $directoryPath = 'C:\BGWallpaper'
@@ -60,15 +62,11 @@ $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::High
 $graphics.DrawImage($image, 0, 0, $newWidth, $newHeight)
 $hostname = hostname
 $serial = (Get-WmiObject win32_bios).serialnumber
-$mac = (Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object { $_.IPAddress -ne $null }).MACAddress
-$ipAddress = (Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object { $_.IPAddress -ne $null -and $_.IPEnabled }).IPAddress[0]
-$enrolledUserFilePath = "C:\Temp\EnrolledUser.txt"
-if (Test-Path $enrolledUserFilePath) {
-    $content = Get-Content $enrolledUserFilePath
-    $text = $text = "Hostname: $hostname`r`nSerial number: $serial`r`nMAC address: $mac`r`nIP address: $ipaddress`r`nWS1 Enrolled User: $content"
-} else {
-    $text = "Hostname: $hostname`r`nSerial number: $serial`r`nMAC address: $mac`r`nIP address: $ipaddress"
-}
+$ipAddress = (($getIPaddresses = (Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object { $_.IPAddress -ne $null -and $_.IPEnabled }).IPAddress -match '\d+\.\d+\.\d+\.\d+') -join ' | ')
+$dns = (Get-DnsClientServerAddress | Select-Object -ExpandProperty ServerAddresses | Where-Object { $_ -match '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}' }) -join ' | '
+$mac = (Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object { $_.IPAddress -ne $null }).MACAddress -join ' | '
+$currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+$text = "Hostname: $hostname`r`nSerial: $serial`r`nIP address: $ipAddress`r`nDNS: $dns`r`nMAC: $mac`r`nCurrent User: $currentUser"
 $font = New-Object System.Drawing.Font("Arial", 14, [System.Drawing.FontStyle]::Bold)
 $brush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
 $textSize = $graphics.MeasureString($text, $font)
@@ -86,14 +84,19 @@ if ($currentWallpaperPath -match $textToRemove) {
 else {
     $graphics.DrawString($text, $font, $brush, $point)
     $bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Jpeg)
-    [Wallpaper]::SetWallpaper($outputPath)
+
+    <# **** CRITICAL LINES AHEAD :) **** #>
+
+    #Remove # below and add # to next line to SET Wallpaper
+        [Wallpaper]::SetWallpaper($outputPath)
+
+    #Remove # below and add # to previous line to REVERT Wallpaper
+        #[Wallpaper]::SetWallpaper($originalPath)
+
+    <# ************ BREAK ************ #>
 }
 $graphics.Dispose()
 $image.Dispose()
 $bitmap.Dispose()
 $font.Dispose()
 $brush.Dispose()
-
-#apps-fileview.texmex_20230712.10_p0
-#SysInfoWallpaper_jaroga.txt
-#Displaying #SysInfoWallpaper_jaroga.txt.
